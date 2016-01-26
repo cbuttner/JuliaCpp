@@ -55,5 +55,6 @@ This allows you to use already allocated arrays and C-style arrays as return typ
 bool a;
 std::vector<float> b; b.resize(64);
 float c[128];
-module.call<void>("function", OUT_BYREF(a, b, c), arg1, arg2);
+// No template parameters necessary here
+module.call("function", OUT_BYREF(a, b, c), arg1, arg2);
 ```
