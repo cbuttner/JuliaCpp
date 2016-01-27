@@ -611,6 +611,39 @@ inline void shutdownJulia(int status = 0)
 	jl_atexit_hook(status);
 }
 
+struct ImmediateValue
+{
+	jl_value_t* _jlvalue;
+
+	template <typename T>
+	inline operator T()
+	{
+		return Impl::Unboxer::ValueUnboxer<T>::apply(_jlvalue);
+	}
+};
+
+template <typename... T>
+class Tuple
+{
+public:
+	Tuple(T&... args) : _tuple(args...) {}
+
+	void operator=(ImmediateValue&& value)
+	{
+		_tuple = Impl::unboxValue<typename std::remove_reference<T>::type...>(value._jlvalue);
+	}
+
+private:
+
+	std::tuple<T&...> _tuple;
+};
+
+template <typename... T>
+Tuple<T&...> tie(T&... args)
+{
+	return Tuple<T&...>(args...);
+}
+
 class JuliaModule
 {
 public:
@@ -663,12 +696,18 @@ public:
 		}
 	}
 
-	template<typename... TReturns, typename... TArgs>
-	typename Impl::Unboxer::ValueUnboxer<TReturns...>::type call(const std::string& functionName, TArgs&&... args)
+	template<typename... TArgs>
+	ImmediateValue call(const std::string& functionName, TArgs&&... args)
+	{
+		return ImmediateValue { callInternal(functionName, std::forward<TArgs>(args)...) };
+	}
+
+	template<typename TReturn, typename... TArgs>
+	TReturn call(const std::string& functionName, TArgs&&... args)
 	{
 		jl_value_t* ret = callInternal(functionName, std::forward<TArgs>(args)...);
-		return Impl::unboxValue<TReturns...>(ret);
-	}
+		return Impl::unboxValue<TReturn>(ret);
+	};
 
 	template<typename... TReturns, typename... TArgs>
 	void call(const std::string& functionName, std::tuple<TReturns&...>&& returns, TArgs&&... args)

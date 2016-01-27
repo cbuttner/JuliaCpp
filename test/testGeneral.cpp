@@ -42,7 +42,7 @@ TEST_CASE("Multiple return")
 		std::vector<double> c;
 		std::array<std::array<std::vector<int64_t>, 2>, 2> d;
 
-		std::tie(a, b, c, d) = module.call<int, std::string, decltype(c), decltype(d)>("getMultiReturn");
+		juliacpp::tie(a, b, c, d) = module.call("getMultiReturn");
 
 		const std::vector<double> expected_c { 233.23, 2323.424221231, -2.232 };
 		const std::array<std::array<std::vector<int64_t>, 2>, 2> expected_d { { {{{2},{1,4,-9}}},{{{},{2,4}}} } };
@@ -55,7 +55,7 @@ TEST_CASE("Multiple return")
 
 	{
 		int a, b;
-		std::tie(a, b) = module.call<int, int>("roundtrip2", (int)1, (int)2);
+		juliacpp::tie(a, b) = module.call("roundtrip2", (int)1, (int)2);
 		REQUIRE(a == 1);
 		REQUIRE(b == 2);
 	}
