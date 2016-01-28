@@ -56,27 +56,28 @@ module.call("reverse!", array);
 assert(array == std::array<int, 3> { 3, 2, 1 });
 ```
 
-### Return values by reference
-You can also pass references which will used for the returned values.
-This allows you to use already allocated arrays and C-style arrays as return types.
+#### Indicate that arrays should not be allocated
+To use already allocated arrays and C-style arrays as return types, JuliaCpp provides `tieNoAlloc` and `noAlloc`:
 ```c++
 bool a;
 std::vector<float> b; b.resize(64);
 float c[128];
-// No template parameters necessary here
-module.call("function", OUT_BYREF(a, b, c), arg1, arg2);
+tieNoAlloc(a, b, c) = module.call("function", arg1, arg2);
+
+// Special (but not required) syntax for single return values:
+noAlloc(b) = module.call("function", arg1, arg2);
 ```
-To unambiguously indicate which arguments should hold the references, we use `OUT_BYREF(...)`.
 
 You can also use `ArrayPointer<T>` to wrap a pointer and an array size.
+`ArrayPointer<T>` is useful if you need to have data copied into previously allocated memory which is not wrapped by one of the standard array/vector containers.
 ```c++
 double* pointer;
 const size_t len = 128;
 ArrayPointer<double> array(pointer, len);
 
-module.call("reverse", OUT_BYREF(array), array);
+noAlloc(array) = module.call("reverse", array);
 ```
-Note that `ArrayPointer<T>` is also supported as a direct return value, but the `_data` pointer has to be freed (with `delete[]`) manually.
+Note that `ArrayPointer<T>` is also supported as a direct (not a `noAlloc`) return value, but the `_data` pointer has to be freed (with `delete[]`) manually.
 
 ### Error handling
 JuliaCpp takes care of type checking returned values and handling Julia exceptions when calling a function or loading a module. In these instances, JuliaCpp will throw an exception of type `JuliaCppException`.
