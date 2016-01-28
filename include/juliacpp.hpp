@@ -611,7 +611,7 @@ inline void shutdownJulia(int status = 0)
 	jl_atexit_hook(status);
 }
 
-struct ImmediateValue
+struct IntermediateValue
 {
 	jl_value_t* _jlvalue;
 
@@ -628,7 +628,7 @@ class Tuple
 public:
 	Tuple(T&... args) : _tuple(args...) {}
 
-	void operator=(ImmediateValue&& value)
+	void operator=(IntermediateValue&& value)
 	{
 		_tuple = Impl::unboxValue<typename std::remove_reference<T>::type...>(value._jlvalue);
 	}
@@ -697,9 +697,9 @@ public:
 	}
 
 	template<typename... TArgs>
-	ImmediateValue call(const std::string& functionName, TArgs&&... args)
+	IntermediateValue call(const std::string& functionName, TArgs&&... args)
 	{
-		return ImmediateValue { callInternal(functionName, std::forward<TArgs>(args)...) };
+		return IntermediateValue { callInternal(functionName, std::forward<TArgs>(args)...) };
 	}
 
 	template<typename TReturn, typename... TArgs>
