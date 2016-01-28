@@ -24,8 +24,8 @@ TEST_CASE("Errors")
 	{
 		int array1[3];
 		int64_t array2[2];
-		REQUIRE_THROWS_AS(module.call("getArray", OUT_BYREF(array1)), JuliaCppException);
-		REQUIRE_THROWS_AS(module.call("getArray", OUT_BYREF(array2)), JuliaCppException);
+		REQUIRE_THROWS_AS(noAlloc(array1) = module.call("getArray"), JuliaCppException);
+		REQUIRE_THROWS_AS(noAlloc(array2) = module.call("getArray"), JuliaCppException);
 	}
 
 	{
@@ -35,11 +35,11 @@ TEST_CASE("Errors")
 
 	{
 		std::vector<std::vector<double>> arrayOfArrays;
-		REQUIRE_THROWS_AS(module.call("getArrayOfArrays2", OUT_BYREF(arrayOfArrays)), JuliaCppException);
+		REQUIRE_THROWS_AS(noAlloc(arrayOfArrays) = module.call("getArrayOfArrays2"), JuliaCppException);
 		arrayOfArrays.resize(2);
 		arrayOfArrays[0].resize(2);
 		arrayOfArrays[1].resize(3);
-		REQUIRE_THROWS_AS(module.call("getArrayOfArrays2", OUT_BYREF(arrayOfArrays)), JuliaCppException);
+		REQUIRE_THROWS_AS(noAlloc(arrayOfArrays) = module.call("getArrayOfArrays2"), JuliaCppException);
 	}
 
 	REQUIRE_THROWS_AS(module.call<void>("NOTEXISTING"), JuliaCppException);

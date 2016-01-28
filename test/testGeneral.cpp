@@ -76,7 +76,7 @@ TEST_CASE("Call with reference")
 
 	{
 		int a;
-		module.call("roundtrip", OUT_BYREF(a), 42);
+		noAlloc(a) = module.call("roundtrip", 42);
 		REQUIRE(a == 42);
 	}
 
@@ -84,7 +84,7 @@ TEST_CASE("Call with reference")
 		int a;
 		double b;
 
-		module.call("roundtrip2", OUT_BYREF(a, b), 42, 123.321);
+		tieNoAlloc(a, b) = module.call("roundtrip2", 42, 123.321);
 		REQUIRE(a == 42);
 		REQUIRE(b == 123.321);
 	}
@@ -93,7 +93,7 @@ TEST_CASE("Call with reference")
 		const std::array<int64_t,3> in { 2, 4, 99999999999999 };
 		std::array<int64_t,3> out { 0, 0, 0 };
 
-		module.call("roundtrip", OUT_BYREF(out), in);
+		noAlloc(out) = module.call("roundtrip", in);
 		REQUIRE(in == out);
 	}
 
@@ -101,7 +101,7 @@ TEST_CASE("Call with reference")
 		const int in[] { 2, 4, 3 };
 		int out[] { 0, 0, 0 };
 
-		module.call("roundtrip", OUT_BYREF(out), in);
+		noAlloc(out) = module.call("roundtrip", in);
 		REQUIRE(std::equal(std::begin(in), std::end(in), std::begin(out)));
 	}
 
@@ -113,7 +113,7 @@ TEST_CASE("Call with reference")
 		const std::array<bool,2> in2 { true, false };
 		std::array<bool,2> out2 { false, false };
 
-		module.call("roundtrip2", OUT_BYREF(out1, out2), in1, in2);
+		tieNoAlloc(out1, out2) = module.call("roundtrip2", in1, in2);
 		REQUIRE(in1 == out1);
 		REQUIRE(in2 == out2);
 	}
@@ -122,7 +122,7 @@ TEST_CASE("Call with reference")
 		const std::array<std::array<int64_t,3>,2> in {{ { 2, 5, 13 }, { 1, 4, 9 } }};
 		std::array<std::array<int64_t,3>,2> out {{ { 2, 5, 13 }, { 1, 4, 9 } }};
 
-		module.call("modifyNestedArray", OUT_BYREF(out), in);
+		noAlloc(out) = module.call("modifyNestedArray", in);
 		REQUIRE_FALSE(in == out);
 	}
 }
@@ -142,14 +142,14 @@ TEST_CASE("ArrayPointer with reference")
 
 	SECTION("Roundtrip")
 	{
-		module.call("roundtrip2", OUT_BYREF(out1, array), in1, array);
+		tieNoAlloc(out1, array) = module.call("roundtrip2", in1, array);
 		REQUIRE(std::equal(std::begin(in1), std::end(in1), std::begin(out1)));
 		REQUIRE(array == in2copy);
 	}
 
 	SECTION("Reverse")
 	{
-		module.call("reverse", OUT_BYREF(array), array);
+		noAlloc(array) = module.call("reverse", array);
 		REQUIRE(array == in2reverse);
 	}
 }

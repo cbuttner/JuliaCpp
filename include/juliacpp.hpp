@@ -65,8 +65,6 @@ inline void log(const char*, ...)
 }
 #endif
 
-#define OUT_BYREF(...) std::tie(__VA_ARGS__)
-
 template<typename T>
 struct ArrayPointer
 {
@@ -88,6 +86,7 @@ struct ArrayPointer
 
 	size_t size() const	{ return _len; }
 	T* data() { return _data; }
+	const T* data() const { return _data; }
 
 	T& operator[](size_t i) { return _data[i]; }
 	const T& operator[](size_t i) const { return _data[i]; }
@@ -97,10 +96,10 @@ struct ArrayPointer
 		return std::equal(_data, _data + _len, rhs._data);
 	}
 
-	template<size_t N>
-	bool operator==(const T(& val)[N]) const
+	template<typename TArray>
+	bool operator==(const TArray& rhs) const
 	{
-		return std::equal(_data, _data + _len, val);
+		return std::equal(_data, _data + _len, std::begin(rhs));
 	}
 };
 
@@ -480,12 +479,12 @@ namespace Impl
 			}
 
 			template<std::size_t... N>
-			static void unboxTuple(jl_value_t* value, std::tuple<TReturns&...>&& tuple, Indices<N...>)
+			static void unboxTuple(jl_value_t* value, std::tuple<TReturns&...>& tuple, Indices<N...>)
 			{
-				rec<TReturns...>(value, 0, std::get<N>(std::forward<std::tuple<TReturns&...>>(tuple))...);
+				rec<TReturns...>(value, 0, std::get<N>(tuple)...);
 			}
 
-			static void apply(jl_value_t* value, std::tuple<TReturns&...>&& tuple)
+			static void apply(jl_value_t* value, std::tuple<TReturns&...>& tuple)
 			{
 				constexpr auto numReturns = sizeof...(TReturns);
 				static_assert(numReturns > 1, "This function call is for tuples.");
@@ -493,7 +492,7 @@ namespace Impl
 				JULIACPP_ASSERT(jl_is_tuple(value), "Returned value is not a tuple.");
 				JULIACPP_ASSERT(jl_nfields(value) == numReturns, "Julia did not return the expected number of values.");
 
-				unboxTuple(value, std::forward<std::tuple<TReturns&...>>(tuple), typename IndicesBuilder<numReturns>::type());
+				unboxTuple(value, tuple, typename IndicesBuilder<numReturns>::type());
 			}
 		};
 
@@ -583,15 +582,15 @@ namespace Impl
 	}
 
 	template<typename T>
-	inline void unboxValueByRef(jl_value_t* val, std::tuple<T&>&& returns)
+	inline void unboxValueByRef(jl_value_t* val, std::tuple<T&>& returns)
 	{
 		RefUnboxer::RefValueUnboxer<T>::apply(val, std::get<0>(returns));
 	}
 
 	template<typename... TReturns>
-	inline void unboxValueByRef(jl_value_t* val, std::tuple<TReturns&...>&& returns)
+	inline void unboxValueByRef(jl_value_t* val, std::tuple<TReturns&...>& returns)
 	{
-		RefUnboxer::RefValueUnboxer<TReturns...>::apply(val, std::forward<std::tuple<TReturns&...>>(returns));
+		RefUnboxer::RefValueUnboxer<TReturns...>::apply(val, returns);
 	}
 } // namespace Impl
 
@@ -634,7 +633,6 @@ public:
 	}
 
 private:
-
 	std::tuple<T&...> _tuple;
 };
 
@@ -642,6 +640,33 @@ template <typename... T>
 Tuple<T&...> tie(T&... args)
 {
 	return Tuple<T&...>(args...);
+}
+
+template <typename... T>
+struct TupleNoAlloc
+{
+public:
+	TupleNoAlloc(T&... args) : _tuple(args...) {}
+
+	void operator=(IntermediateValue&& value)
+	{
+		Impl::unboxValueByRef<typename std::remove_reference<T>::type...>(value._jlvalue, _tuple);
+	}
+
+private:
+	std::tuple<T&...> _tuple;
+};
+
+template <typename... T>
+TupleNoAlloc<T&...> tieNoAlloc(T&... args)
+{
+	return TupleNoAlloc<T&...>(args...);
+}
+
+template <typename T>
+TupleNoAlloc<T&> noAlloc(T& arg)
+{
+	return TupleNoAlloc<T&>(arg);
 }
 
 class JuliaModule
@@ -707,13 +732,6 @@ public:
 	{
 		jl_value_t* ret = callInternal(functionName, std::forward<TArgs>(args)...);
 		return Impl::unboxValue<TReturn>(ret);
-	};
-
-	template<typename... TReturns, typename... TArgs>
-	void call(const std::string& functionName, std::tuple<TReturns&...>&& returns, TArgs&&... args)
-	{
-		jl_value_t* ret = callInternal(functionName, std::forward<TArgs>(args)...);
-		Impl::unboxValueByRef(ret, std::forward<std::tuple<TReturns&...>>(returns));
 	};
 
 private:
