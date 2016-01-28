@@ -92,3 +92,14 @@ JuliaModule module(jl_current_module); // will load no file but a specific jl_mo
 
 module.reload(); // Reload the file and the module (if specified)
 ```
+
+### Manual mode
+You can use `jl_value_t*` directly and still make use of some of JuliaCpp's features:
+```c++
+jl_value_t* value = module.call("roundtrip", (int)2).getJuliaValue();
+int a = unboxJuliaValue<int>(value);
+
+value = module.call("roundtrip2", (int)2, "tester").getJuliaValue();
+std::string b;
+juliacpp::tie(a, b) = unboxJuliaValue(value);
+```
