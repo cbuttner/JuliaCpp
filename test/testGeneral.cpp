@@ -153,3 +153,21 @@ TEST_CASE("ArrayPointer with reference")
 		REQUIRE(array == in2reverse);
 	}
 }
+
+TEST_CASE("Manually handling jl_value_t*")
+{
+	using namespace juliacpp;
+	JuliaModule module("../test/test.jl", "JuliaCppTests");
+
+	jl_value_t* value = module.call("roundtrip", (int)2).getJuliaValue();
+	auto a = unboxJuliaValue<int>(value);
+	REQUIRE(a == 2);
+
+	value = module.call("roundtrip2", (int)2, "tester").getJuliaValue();
+
+	std::string b;
+
+	juliacpp::tie(a, b) = unboxJuliaValue(value);
+	REQUIRE(a == 2);
+	REQUIRE(b == "tester");
+}

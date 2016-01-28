@@ -612,6 +612,9 @@ inline void shutdownJulia(int status = 0)
 
 struct IntermediateValue
 {
+	IntermediateValue() = default;
+	IntermediateValue(jl_value_t* jlvalue) : _jlvalue(jlvalue) { };
+
 	jl_value_t* _jlvalue;
 
 	template <typename T>
@@ -619,7 +622,20 @@ struct IntermediateValue
 	{
 		return Impl::Unboxer::ValueUnboxer<T>::apply(_jlvalue);
 	}
+
+	inline jl_value_t* getJuliaValue() { return _jlvalue; }
 };
+
+template <typename T>
+inline T unboxJuliaValue(jl_value_t* value)
+{
+	return Impl::unboxValue<T>(value);
+}
+
+inline IntermediateValue unboxJuliaValue(jl_value_t* value)
+{
+	return IntermediateValue(value);
+}
 
 template <typename... T>
 class Tuple
