@@ -2,9 +2,10 @@
 A simple C++11 header-only library for calling Julia functions.
 
 ## Features
-- Call Julia functions with:
- - Primitive types and strings
- - Homogeneous, nested 1D arrays (C-arrays, std::array and std::vector)
+- Primitive types and strings
+- Homogeneous, nested 1D arrays (C-arrays, std::array and std::vector)
+- Multiple return values (tuples)
+- Error handling
 
 ## Usage
 ```c++
@@ -103,3 +104,10 @@ value = module.call("roundtrip2", (int)2, "tester").getJuliaValue();
 std::string b;
 juliacpp::tie(a, b) = unboxJuliaValue(value);
 ```
+
+## Roadmap
+Features that would be nice to have in the future:
+- Multi-dimensional arrays
+- Using Julia-internal allocated array data directly without copying the memory (however this would require preventing the Julia GC from freeing the memory)
+
+Pull requests are always welcome.
