@@ -12,7 +12,7 @@
 #include <sstream>
 #include <type_traits>
 
-namespace juliacpp
+namespace jlcpp
 {
 
 class JuliaCppException : public std::exception
@@ -828,4 +828,4 @@ private:
 
 };
 
-} // namespace juliacpp
+} // namespace jlcpp

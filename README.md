@@ -9,7 +9,7 @@ A simple C++11 header-only library for calling Julia functions.
 
 ## Usage
 ```c++
-using namespace juliacpp;
+using namespace jlcpp;
 
 initJulia("/usr/lib"); // or just initJulia();
 JuliaModule module("path/to/file.jl", "ModuleName");
@@ -25,12 +25,12 @@ double result = module.call<double>("add", 2.4, 5.9);
 // Multiple return values
 int a;
 std::string b;
-juliacpp::tie(a, b) = module.call("function", (uint8_t)2);
+jlcpp::tie(a, b) = module.call("function", (uint8_t)2);
 
 shutdownJulia();
 ```
-Note that we need to use `juliacpp::tie` instead of `std::tie` for returned tuples.
-Also, when using `juliacpp::tie`, template parameters are never required.
+Note that we need to use `jlcpp::tie` instead of `std::tie` for returned tuples.
+Also, when using `jlcpp::tie`, template parameters are never required.
 ### Arrays
 ```c++
 const int array[] { 1, 2, 3 };
@@ -46,7 +46,7 @@ std::vector<int[3]> a1;
 std::array<std::vector<bool>> a2;
 int a3[][3] {{ 1, 2, 3 }, { 4, 5, 6 }};
 
-juliacpp::tie(a1, a2) = module.call("function", a3);
+jlcpp::tie(a1, a2) = module.call("function", a3);
 
 ```
 If an array is passed as const, a new Julia array will be allocated and filled with data.

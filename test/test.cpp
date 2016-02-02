@@ -5,11 +5,11 @@
 
 int main(int argc, char* argv[])
 {
-	juliacpp::initJulia(JULIA_INIT_DIR);
+	jlcpp::initJulia(JULIA_INIT_DIR);
 
 	int result = Catch::Session().run(argc, argv);
 
-	juliacpp::shutdownJulia();
+	jlcpp::shutdownJulia();
 
 	return result;
 }

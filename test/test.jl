@@ -1,14 +1,14 @@
 module JuliaCppTests
 
 function roundtrip(val)
-  @show val
-  println(typeof(val))
+  #@show val
+  #println(typeof(val))
   val
 end
 
 function roundtrip2(a, b)
-  @show a, b
-  println(typeof((a, b)))
+  #@show a, b
+  #println(typeof((a, b)))
   return a, b
 end
 

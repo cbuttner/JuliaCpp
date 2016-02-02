@@ -3,7 +3,7 @@
 
 TEST_CASE("Errors")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	REQUIRE_THROWS_AS(module.call<void>("errorFunction"), JuliaCppException);
@@ -13,9 +13,9 @@ TEST_CASE("Errors")
 	REQUIRE_THROWS_AS((module.call<std::string, bool>("roundtrip2", true, "not a bool")), JuliaCppException);
 
 	bool a, b, c;
-	REQUIRE_THROWS_AS((juliacpp::tie(a, b) = module.call("roundtrip", true)), JuliaCppException);
+	REQUIRE_THROWS_AS((jlcpp::tie(a, b) = module.call("roundtrip", true)), JuliaCppException);
 	REQUIRE_THROWS_AS((module.call<bool>("roundtrip2", true, false)), JuliaCppException);
-	REQUIRE_THROWS_AS((juliacpp::tie(a, b, c) = module.call("roundtrip2", true, false)), JuliaCppException);
+	REQUIRE_THROWS_AS((jlcpp::tie(a, b, c) = module.call("roundtrip2", true, false)), JuliaCppException);
 
 	REQUIRE_THROWS_AS(module.call<std::vector<uint64_t>>("roundtrip", "not a vector"), JuliaCppException);
 	REQUIRE_THROWS_AS(module.call<std::string>("getArrayOfArrays"), JuliaCppException);

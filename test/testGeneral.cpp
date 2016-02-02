@@ -3,7 +3,7 @@
 
 TEST_CASE("Literals/rvalues")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	REQUIRE(module.call<bool>("roundtrip", false) == false);
@@ -33,7 +33,7 @@ TEST_CASE("Literals/rvalues")
 
 TEST_CASE("Multiple return")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	{
@@ -42,7 +42,7 @@ TEST_CASE("Multiple return")
 		std::vector<double> c;
 		std::array<std::array<std::vector<int64_t>, 2>, 2> d;
 
-		juliacpp::tie(a, b, c, d) = module.call("getMultiReturn");
+		jlcpp::tie(a, b, c, d) = module.call("getMultiReturn");
 
 		const std::vector<double> expected_c { 233.23, 2323.424221231, -2.232 };
 		const std::array<std::array<std::vector<int64_t>, 2>, 2> expected_d { { {{{2},{1,4,-9}}},{{{},{2,4}}} } };
@@ -55,7 +55,7 @@ TEST_CASE("Multiple return")
 
 	{
 		int a, b;
-		juliacpp::tie(a, b) = module.call("roundtrip2", (int)1, (int)2);
+		jlcpp::tie(a, b) = module.call("roundtrip2", (int)1, (int)2);
 		REQUIRE(a == 1);
 		REQUIRE(b == 2);
 	}
@@ -63,7 +63,7 @@ TEST_CASE("Multiple return")
 
 TEST_CASE("No file")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module(jl_current_module);
 
 	REQUIRE(module.call<double>("sqrt", 4.0) == Approx(2.0));
@@ -71,7 +71,7 @@ TEST_CASE("No file")
 
 TEST_CASE("Call with reference")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	{
@@ -129,7 +129,7 @@ TEST_CASE("Call with reference")
 
 TEST_CASE("ArrayPointer with reference")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	const std::string in1[] { "a", "bc", "def" };
@@ -156,7 +156,7 @@ TEST_CASE("ArrayPointer with reference")
 
 TEST_CASE("Manually handling jl_value_t*")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	jl_value_t* value = module.call("roundtrip", (int)2).getJuliaValue();
@@ -167,7 +167,7 @@ TEST_CASE("Manually handling jl_value_t*")
 
 	std::string b;
 
-	juliacpp::tie(a, b) = unboxJuliaValue(value);
+	jlcpp::tie(a, b) = unboxJuliaValue(value);
 	REQUIRE(a == 2);
 	REQUIRE(b == "tester");
 }

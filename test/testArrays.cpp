@@ -3,7 +3,7 @@
 
 TEST_CASE("Arrays")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	{
@@ -39,7 +39,7 @@ TEST_CASE("Arrays")
 
 TEST_CASE("Nested arrays")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	{
@@ -65,7 +65,7 @@ TEST_CASE("Nested arrays")
 
 TEST_CASE("Array constness")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	{
@@ -119,7 +119,7 @@ TEST_CASE("Array constness")
 
 TEST_CASE("Array constness for nested arrays")
 {
-	using namespace juliacpp;
+	using namespace jlcpp;
 	JuliaModule module("../test/test.jl", "JuliaCppTests");
 
 	{
