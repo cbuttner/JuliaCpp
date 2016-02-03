@@ -5,6 +5,7 @@ A simple C++11 header-only library for calling Julia functions.
 - Primitive types and strings
 - Homogeneous, nested 1D arrays (C-arrays, std::array and std::vector)
 - Multiple return values (tuples)
+- Keyword arguments
 - Error handling
 
 ## Usage
@@ -79,6 +80,21 @@ ArrayPointer<double> array(pointer, len);
 noAlloc(array) = module.call("reverse", array);
 ```
 Note that `ArrayPointer<T>` is also supported as a direct (not a `noAlloc`) return value, but the `_data` pointer has to be freed (with `delete[]`) manually.
+
+### Keyword arguments
+An optional `KeywordArgs` can be added to the arguments. It doesn't matter at which position the `KeywordArgs` is passed since it is filtered out separately. Passing more than one `KeywordArgs` will cause a compile time error.
+```c++
+module.call("function", arg1, arg2, KeywordArgs("kw1", kw1value)("kw2", kw2value));
+// or module.call("function", KeywordArgs("kw1", kw1value)("kw2", kw2value), arg1, arg2);
+```
+Keyword arguments are appended to `KeywordArgs` by using the bracket operator for each key-value pair.
+```c++
+const size_t size = 4;
+std::array<double, size> rand = module.call("rand", size);
+
+double x[size] { 1, 2, 3, 4 };
+module.call("plot", KeywordArgs("x", x)("y", rand));
+```
 
 ### Error handling
 JuliaCpp takes care of type checking returned values and handling Julia exceptions when calling a function or loading a module. In these instances, JuliaCpp will throw an exception of type `JuliaCppException`.
