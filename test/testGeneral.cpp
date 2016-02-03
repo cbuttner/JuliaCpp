@@ -171,3 +171,36 @@ TEST_CASE("Manually handling jl_value_t*")
 	REQUIRE(a == 2);
 	REQUIRE(b == "tester");
 }
+
+TEST_CASE("Keyword arguments")
+{
+	using namespace jlcpp;
+	JuliaModule module("../test/test.jl", "JuliaCppTests");
+
+	const std::vector<int64_t> named2 { -1, -2, -3 };
+
+	int a;
+	std::string b;
+	bool c;
+	std::vector<int64_t> d;
+
+	jlcpp::tie(a, b, c, d) = module.call("keywordArgsFunction", 123456, "tester", KeywordArgs("named2", named2)("named1", true));
+	REQUIRE(a == 123456);
+	REQUIRE(b == "tester");
+	REQUIRE(c == true);
+	REQUIRE(d == named2);
+
+	jlcpp::tie(a, b, c, d) = module.call("keywordArgsFunction", KeywordArgs("named2", named2), 123456, "tester");
+	REQUIRE(a == 123456);
+	REQUIRE(b == "tester");
+	REQUIRE(c == false);
+	REQUIRE(d == named2);
+
+	std::string e;
+
+	jlcpp::tie(a, b, c, e) = module.call("keywordArgsFunction", 123456, "tester");
+	REQUIRE(a == 123456);
+	REQUIRE(b == "tester");
+	REQUIRE(c == false);
+	REQUIRE(e == "");
+}

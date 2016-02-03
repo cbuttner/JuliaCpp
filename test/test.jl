@@ -43,4 +43,12 @@ function errorFunction()
   error("error")
 end
 
+function keywordArgsFunction(arg1, arg2; named1::Bool=false, named2="")
+  #println(arg1)
+  #println(arg2)
+  #println(named1)
+  #println(named2)
+  return arg1, arg2, named1, named2
+end
+
 end

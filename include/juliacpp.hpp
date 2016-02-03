@@ -5,7 +5,7 @@
 #include <vector>
 #include <array>
 #include <map>
-#include <typeindex>
+#include <tuple>
 #include <memory>
 #include <cstring> // std::memcpy
 #include <iostream>
@@ -103,7 +103,6 @@ struct ArrayPointer
 	}
 };
 
-
 namespace Impl
 {
 	template <std::size_t... Is>
@@ -120,6 +119,33 @@ namespace Impl
 
 	template <typename T>
 	using UnqualifiedType = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+
+	template <typename T, typename... TElem>
+	struct TypeOccurrenceCounter;
+
+	template <typename T, typename THead, typename... TTail>
+	struct TypeOccurrenceCounter<T, THead, TTail...>
+	{
+		static constexpr int value = TypeOccurrenceCounter<T, TTail...>::value;
+	};
+
+	template <typename T, typename... TTail>
+	struct TypeOccurrenceCounter<T, T, TTail...>
+	{
+		static constexpr int value = 1 + TypeOccurrenceCounter<T, TTail...>::value;
+	};
+
+	template <typename T>
+	struct TypeOccurrenceCounter<T>
+	{
+		static constexpr int value = 0;
+	};
+
+	template <typename T, typename... TArgs>
+	struct HasMaxOne
+	{
+		static constexpr bool value = TypeOccurrenceCounter<T, TArgs...>::value <= 1;
+	};
 
 	template <typename T> inline jl_datatype_t* dataTypeOf()
 	{
@@ -685,6 +711,48 @@ TupleNoAlloc<T&> noAlloc(T& arg)
 	return TupleNoAlloc<T&>(arg);
 }
 
+struct KeywordArgs
+{
+	template <typename T>
+	KeywordArgs(const std::string& key, T&& value)
+	{
+		_map[key] = Impl::box(std::forward<T>(value));
+	}
+
+	template <typename T>
+	KeywordArgs&& operator()(const std::string& key, T&& value) &&
+	{
+		_map[key] = Impl::box(std::forward<T>(value));
+		return std::move(*this);
+	}
+
+	std::map<std::string, jl_value_t*> _map;
+};
+
+namespace Impl
+{
+	static jl_value_t* boxKeywordArgs(const KeywordArgs& keywordArgs)
+	{
+		const size_t numArgs = keywordArgs._map.size();
+		jl_datatype_t* dataType = jl_any_type;
+
+		jl_value_t* arrayType = jl_apply_array_type(dataType, 1);
+		jl_array_t* array = jl_alloc_array_1d(arrayType, numArgs * 2);
+
+		jl_value_t** arrayData = (jl_value_t**)jl_array_data(array);
+		size_t i = 0;
+		for(auto& kv : keywordArgs._map)
+		{
+			arrayData[i] = (jl_value_t*)jl_symbol(kv.first.c_str());
+			arrayData[i+1] = kv.second;
+
+			i += 2;
+		}
+
+		return (jl_value_t*)array;
+	}
+}
+
 class JuliaModule
 {
 public:
@@ -755,13 +823,23 @@ private:
 	template<typename... TArgs>
 	jl_value_t* callInternal(const std::string& functionName, TArgs&&... args)
 	{
+		static_assert(Impl::HasMaxOne<KeywordArgs, TArgs...>::value, "Only a maximum of one KeywordArgs is allowed.");
+
 		jl_function_t* func = getFunction(functionName);
 		JULIACPP_ASSERT(func != nullptr, "Function '" + functionName + "' not found.");
 
 		_argumentList.clear();
 		_argumentList.reserve(sizeof...(TArgs));
+		_keywordArgs = nullptr;
 
 		pushToArgumentList(std::forward<TArgs>(args)...);
+
+		if (_keywordArgs != nullptr)
+		{
+			func = jl_gf_mtable(func)->kwsorter;
+			JULIACPP_ASSERT(func != nullptr, "Function '" + functionName + "' does not accept keyword arguments.");
+			_argumentList.insert(_argumentList.begin(), _keywordArgs);
+		}
 
 		jl_value_t* ret;
 		if (!_argumentList.empty())
@@ -774,13 +852,7 @@ private:
 			ret = jl_call0(func);
 		}
 
-		if (jl_exception_occurred())
-		{
-			jl_static_show(JL_STDERR, jl_exception_occurred());
-			jl_printf(JL_STDERR, "\n");
-
-			JULIACPP_ASSERT(!jl_exception_occurred(), jl_typeof_str(jl_exception_occurred()));
-		}
+		handleException();
 
 		return ret;
 	}
@@ -811,6 +883,11 @@ private:
 		_argumentList.push_back(val);
 	};
 
+	void pushToArgumentList(KeywordArgs&& keywordArgs)
+	{
+		_keywordArgs = Impl::boxKeywordArgs(keywordArgs);
+	};
+
 	template<typename T, typename... TArgs>
 	void pushToArgumentList(T&& value, TArgs&&...  values)
 	{
@@ -818,6 +895,16 @@ private:
 		pushToArgumentList(std::forward<TArgs>(values)...);
 	};
 
+	static inline void handleException()
+	{
+		if (jl_exception_occurred())
+		{
+			jl_static_show(JL_STDERR, jl_exception_occurred());
+			jl_printf(JL_STDERR, "\n");
+
+			JULIACPP_ASSERT(!jl_exception_occurred(), jl_typeof_str(jl_exception_occurred()));
+		}
+	}
 
 private:
 	std::string _filePath;
@@ -825,7 +912,7 @@ private:
 	jl_module_t* _module;
 
 	std::vector<jl_value_t*> _argumentList;
-
+	jl_value_t* _keywordArgs;
 };
 
 } // namespace jlcpp

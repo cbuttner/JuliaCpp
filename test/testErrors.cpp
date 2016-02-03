@@ -42,6 +42,9 @@ TEST_CASE("Errors")
 		REQUIRE_THROWS_AS(noAlloc(arrayOfArrays) = module.call("getArrayOfArrays2"), JuliaCppException);
 	}
 
+	// function does not accept keyword arguments
+	REQUIRE_THROWS_AS(module.call("roundtrip", 42, KeywordArgs("a", 0)), JuliaCppException);
+
 	REQUIRE_THROWS_AS(module.call<void>("NOTEXISTING"), JuliaCppException);
 	REQUIRE_THROWS_AS(JuliaModule errorModule("NOTEXISTING.jl"), JuliaCppException);
 	REQUIRE_THROWS_AS(JuliaModule errorModule("NOTEXISTING.jl", "NOTEXISTING_MODULE"), JuliaCppException);
