@@ -816,7 +816,7 @@ public:
 	{
 		jl_value_t* ret = callInternal(functionName, std::forward<TArgs>(args)...);
 		return Impl::unboxValue<TReturn>(ret);
-	};
+	}
 
 private:
 
@@ -881,19 +881,19 @@ private:
 		jl_value_t* val = Impl::box(value);
 		JULIACPP_ASSERT_NOMSG(val != nullptr);
 		_argumentList.push_back(val);
-	};
+	}
 
 	void pushToArgumentList(KeywordArgs&& keywordArgs)
 	{
 		_keywordArgs = Impl::boxKeywordArgs(keywordArgs);
-	};
+	}
 
 	template<typename T, typename... TArgs>
 	void pushToArgumentList(T&& value, TArgs&&...  values)
 	{
 		pushToArgumentList(std::forward<T>(value));
 		pushToArgumentList(std::forward<TArgs>(values)...);
-	};
+	}
 
 	static inline void handleException()
 	{
