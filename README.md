@@ -12,20 +12,6 @@ A simple C++11 header-only library for calling Julia functions.
 - Error handling
 
 
-## Building
-
-If your Julia root directory is not in `/usr` (e.g. because you compile from
-git) then you'll need to tell cmake where to find the headers and libs.  This
-is done by
-
-```
-mkdir build && cd build
-cmake .. -Djulia-root-dir=/path/to/julia.git/julia-COMMIT
-```
-
-or wherever julia has placed its built `usr` directory.
-
-
 ## Usage
 
 JuliaCpp is a wrapper for the Julia C API. See
@@ -183,6 +169,18 @@ value = module.call("roundtrip2", (int)2, "tester").getJuliaValue();
 std::string b;
 juliacpp::tie(a, b) = unboxJuliaValue(value);
 ```
+
+## Building tests
+
+If your Julia root directory is not in `/usr` (e.g. because you compile from
+git), you need to tell CMake where to find the headers and libraries by setting the `julia-root-dir` variable to the correct path:
+
+```
+mkdir build && cd build
+cmake .. -Djulia-root-dir=/path/to/julia.git/julia-COMMIT
+```
+
+or wherever Julia has placed its built `usr` directory.
 
 
 ## Roadmap
