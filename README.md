@@ -16,7 +16,7 @@ A simple C++11 header-only library for calling Julia functions.
 
 JuliaCpp is a wrapper for the Julia C API. See
 http://docs.julialang.org/en/stable/manual/embedding/ for instructions on how
-to link against Julia.
+to link against Julia. Make sure to compile with `-fPIC`!
 
 ```c++
 using namespace jlcpp;
