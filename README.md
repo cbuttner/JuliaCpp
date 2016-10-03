@@ -115,10 +115,8 @@ separately. Passing more than one `KeywordArgs` will cause a compile time
 error.
 
 ```c++
-module.call("function", arg1, arg2, KeywordArgs("kw1", kw1value)("kw2", 
-            kw2value));
-// or module.call("function", KeywordArgs("kw1", kw1value)("kw2", kw2value), 
-//                arg1, arg2);
+module.call("function", arg1, arg2, KeywordArgs("kw1", kw1value)("kw2", kw2value));
+// or module.call("function", KeywordArgs("kw1", kw1value)("kw2", kw2value), arg1, arg2);
 ```
 
 Keyword arguments are appended to `KeywordArgs` by using the bracket operator
