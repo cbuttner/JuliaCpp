@@ -137,10 +137,9 @@ module.call("plot", KeywordArgs("x", x)("y", rand));
 
 JuliaCpp takes care of type checking returned values and handling Julia
 exceptions when calling a function or loading a module. In these instances,
-JuliaCpp will throw an exception of type `JuliaCppException`.  For Julia
-exceptions, a useful error message can't be extracted right now, but in
-addition to throwing a `JuliaCppException`, the exception object will be
-printed to the *stderr* output by using `jl_static_show`.
+JuliaCpp will throw an exception of type `JuliaCppException`. In addition,
+the Julia function `Base.showerror` will be called to print a useful error
+message to *stderr*.
 
 
 ### JuliaModule
@@ -173,11 +172,12 @@ juliacpp::tie(a, b) = unboxJuliaValue(value);
 ## Building tests
 
 If your Julia root directory is not in `/usr` (e.g. because you compile from
-git), you need to tell CMake where to find the headers and libraries by setting the `julia-root-dir` variable to the correct path:
+git), you need to tell CMake where to find the directory by setting
+the `JULIA_ROOT_DIR` variable to the correct path:
 
 ```
 mkdir build && cd build
-cmake .. -Djulia-root-dir=/path/to/julia.git/julia-COMMIT
+cmake .. -DJULIA_ROOT_DIR=/path/to/julia.git/julia-COMMIT
 ```
 
 or wherever Julia has placed its built `usr` directory.
