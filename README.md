@@ -21,7 +21,7 @@ to link against Julia. Make sure to compile with `-fPIC`!
 ```c++
 using namespace jlcpp;
 
-initJulia("/usr/lib"); // or just initJulia();
+initJulia(JULIA_INIT_DIR); // or initJulia("/usr/lib"); or just initJulia();
 JuliaModule module("path/to/file.jl", "ModuleName");
 
 // No return value
