@@ -43,7 +43,7 @@ function errorFunction()
   error("error")
 end
 
-function keywordArgsFunction(arg1, arg2; named1::Bool=false, named2="")
+function keywordArgsFunction(arg1, arg2; named1::Bool=false, named2="default")
   #println(arg1)
   #println(arg2)
   #println(named1)

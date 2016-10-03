@@ -202,5 +202,5 @@ TEST_CASE("Keyword arguments")
 	REQUIRE(a == 123456);
 	REQUIRE(b == "tester");
 	REQUIRE(c == false);
-	REQUIRE(e == "");
+	REQUIRE(e == "default");
 }

@@ -165,8 +165,8 @@ namespace Impl
 	template <> inline jl_datatype_t* dataTypeOf<uint64_t>() { return jl_uint64_type; }
 	template <> inline jl_datatype_t* dataTypeOf<float>() { return jl_float32_type; }
 	template <> inline jl_datatype_t* dataTypeOf<double>() { return jl_float64_type; }
-	template <> inline jl_datatype_t* dataTypeOf<std::string>() { return jl_utf8_string_type; }
-	template <> inline jl_datatype_t* dataTypeOf<const char*>() { return jl_utf8_string_type; }
+	template <> inline jl_datatype_t* dataTypeOf<std::string>() { return jl_string_type; }
+	template <> inline jl_datatype_t* dataTypeOf<const char*>() { return jl_string_type; }
 
 
 	template<typename T>
@@ -353,7 +353,7 @@ namespace Impl
 	template <> inline uint64_t unbox<uint64_t>(jl_value_t* val) { JULIACPP_ASSERT_NOMSG(jl_is_uint64(val)); return jl_unbox_uint64(val); }
 	template <> inline float unbox<float>(jl_value_t* val) { JULIACPP_ASSERT_NOMSG(jl_is_float32(val)); return jl_unbox_float32(val); }
 	template <> inline double unbox<double>(jl_value_t* val) { JULIACPP_ASSERT_NOMSG(jl_is_float64(val)); return jl_unbox_float64(val); }
-	template <> inline std::string unbox<std::string>(jl_value_t* val) { JULIACPP_ASSERT_NOMSG(jl_is_byte_string(val)); return std::string(jl_string_data(val)); }
+	template <> inline std::string unbox<std::string>(jl_value_t* val) { JULIACPP_ASSERT_NOMSG(jl_is_string(val)); return std::string(jl_string_data(val)); }
 	// Disabled for now, can be garbage collected by Julia
 	//template <> inline const char* unbox<const char*>(jl_value_t* val) { return jl_string_data(val); }
 
@@ -399,7 +399,7 @@ namespace Impl
 
 			const auto size = array.size();
 			JULIACPP_ASSERT(jlArray->length == size, "Invalid array length.");
-			if (jlArray->ptrarray)
+			if (jlArray->flags.ptrarray)
 			{
 				jl_value_t** data = (jl_value_t**)jlArray->data;
 				for (size_t i = 0; i < size; i++)
@@ -584,7 +584,7 @@ namespace Impl
 
 			const auto size = array.size();
 			JULIACPP_ASSERT(jlArray->length == size, "Invalid array length.");
-			if (jlArray->ptrarray)
+			if (jlArray->flags.ptrarray)
 			{
 				jl_value_t** data = (jl_value_t**)jlArray->data;
 				for (size_t i = 0; i < size; i++)
@@ -836,9 +836,15 @@ private:
 
 		if (_keywordArgs != nullptr)
 		{
-			func = jl_gf_mtable(func)->kwsorter;
-			JULIACPP_ASSERT(func != nullptr, "Function '" + functionName + "' does not accept keyword arguments.");
+			jl_function_t* kwsorter = jl_gf_mtable(func)->kwsorter;
+			JULIACPP_ASSERT(kwsorter != nullptr, "Function '" + functionName + "' does not accept keyword arguments.");
+			// insert original function as second argument
+			_argumentList.insert(_argumentList.begin(), func);
+			// insert keyword arguments array as first argument
 			_argumentList.insert(_argumentList.begin(), _keywordArgs);
+
+			// call kwsorter instead
+			func = kwsorter;
 		}
 
 		jl_value_t* ret;
@@ -859,7 +865,7 @@ private:
 
 	static inline void loadFile(const std::string& file)
 	{
-		jl_load(file.c_str(), file.size());
+		jl_load(file.c_str());
 	}
 
 	static inline jl_module_t* loadModule(const std::string& module)
