@@ -797,10 +797,7 @@ public:
 		}
 		JL_CATCH
 		{
-			jl_static_show(JL_STDERR, jl_exception_occurred());
-			jl_printf(JL_STDERR, "\n");
-			JULIACPP_ASSERT(!jl_exception_occurred(), jl_typeof_str(jl_exception_occurred()));
-
+			handleException();
 			jl_exception_clear();
 		}
 	}
@@ -903,12 +900,19 @@ private:
 
 	static inline void handleException()
 	{
-		if (jl_exception_occurred())
+		auto exception = jl_exception_occurred();
+		if (exception != nullptr)
 		{
-			jl_static_show(JL_STDERR, jl_exception_occurred());
+			const std::string exceptionType(jl_typeof_str(exception));
+
+			jl_printf(JL_STDERR, "Julia ERROR: ");
+			jl_value_t* args[2] = { jl_stderr_obj(), exception };
+			jl_function_t* showerror_func = jl_get_function(jl_base_module, "showerror");
+			JULIACPP_ASSERT_NOMSG(showerror_func != nullptr);
+			jl_call(showerror_func, args, 2);
 			jl_printf(JL_STDERR, "\n");
 
-			JULIACPP_ASSERT(!jl_exception_occurred(), jl_typeof_str(jl_exception_occurred()));
+			JULIACPP_ASSERT(exception == nullptr, exceptionType);
 		}
 	}
 
