@@ -15,10 +15,13 @@
 namespace jlcpp
 {
 
+#define jl_is_float32(v) jl_typeis(v,jl_float32_type)
+#define jl_is_float64(v) jl_typeis(v,jl_float64_type)
+
 class JuliaCppException : public std::exception
 {
 public:
-	
+
 	JuliaCppException(const char* expression, const char* file, int line, const std::string& message)
 		: _expression(expression), _file(file), _line(line), _message(message)
 	{
